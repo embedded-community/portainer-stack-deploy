@@ -123,7 +123,9 @@ async function deployStack({ portainerHost, username, password, swarmId, endpoin
     });
     try {
         const allStacks = await portainerApi.getStacks();
-        const existingStack = allStacks.find(s => s.Name === stackName);
+        const existingStack = allStacks.find(s => {
+            return s.Name === stackName && s.EndpointId === endpointId;
+        });
         if (existingStack) {
             core.info(`Found existing stack with name: ${stackName}`);
             core.info('Updating existing stack...');
