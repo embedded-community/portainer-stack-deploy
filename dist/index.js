@@ -34,7 +34,8 @@ class PortainerApi {
         return data;
     }
     async createStack(params, body) {
-        await this.axiosInstance.post('/stacks', body, { params });
+        const path = (body === null || body === void 0 ? void 0 : body.swarmID) ? '/stacks/create/swarm/string' : '/stacks/create/standalone/string';
+        await this.axiosInstance.post(path, body, { params });
     }
     async updateStack(id, params, body) {
         await this.axiosInstance.put(`/stacks/${id}`, body, { params });
