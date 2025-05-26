@@ -111,7 +111,7 @@ function generateNewStackDefinition(stackDefinitionFile, templateVariables, imag
     }
     const imageWithoutTag = image.substring(0, image.indexOf(':'));
     core.info(`Inserting image ${image} into the stack definition`);
-    return stackDefinition.replace(new RegExp(`${imageWithoutTag}(:.*)?\n`), `${image}\n`);
+    return stackDefinition.replace(new RegExp(`${imageWithoutTag}(:.*)?\n`, 'g'), `${image}\n`);
 }
 async function deployStack({ portainerHost, username, password, swarmId, endpointId, stackName, stackDefinitionFile, templateVariables, image, pruneStack, pullImage }) {
     const portainerApi = new api_1.PortainerApi(portainerHost);

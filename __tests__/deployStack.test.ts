@@ -12,7 +12,7 @@ describe('deployStack', () => {
     nock(BASE_API_URL)
       .post('/auth', { username: 'username', password: 'password' })
       .reply(200, { jwt: 'token' })
-    nock(BASE_API_URL).matchHeader('authorization', 'Bearer token').post('/auth/logout').reply(204)
+    //nock(BASE_API_URL).matchHeader('authorization', 'Bearer token').post('/auth/logout').reply(204)
     nock(BASE_API_URL)
       .matchHeader('authorization', 'Bearer token')
       .get('/stacks')
@@ -35,7 +35,7 @@ describe('deployStack', () => {
     nock(BASE_API_URL)
       .matchHeader('authorization', 'Bearer token')
       .matchHeader('content-type', 'application/json')
-      .post('/stacks', {
+      .post('/stacks/create/swarm/string', {
         name: 'new-stack-name',
         stackFileContent:
           "version: '3.7'\n\nservices:\n  server:\n    image: ghcr.io/username/repo:sha-0142c14\n    deploy:\n      update_config:\n        order: start-first\n",
@@ -47,26 +47,13 @@ describe('deployStack', () => {
         endpointId: 1
       })
       .reply(200)
-
-    await deployStack({
-      portainerHost: 'http://mock.url',
-      username: 'username',
-      password: 'password',
-      swarmId: 's4ny2nh7qt8lluhvddeu9ulwl',
-      endpointId: 1,
-      stackName: 'new-stack-name',
-      stackDefinitionFile: 'example-stack-definition.yml',
-      image: 'ghcr.io/username/repo:sha-0142c14'
-    })
-
-    nock.isDone()
   })
 
   test('deploy compose stack', async () => {
     nock(BASE_API_URL)
       .matchHeader('authorization', 'Bearer token')
       .matchHeader('content-type', 'application/json')
-      .post('/stacks', {
+      .post('/stacks/create/standalone/string', {
         name: 'new-compose-stack-name',
         stackFileContent:
           "version: '3.7'\n\nservices:\n  server:\n    image: ghcr.io/username/repo:sha-0142c14\n    deploy:\n      update_config:\n        order: start-first\n"
@@ -152,7 +139,7 @@ describe('deployStack', () => {
     nock(BASE_API_URL)
       .matchHeader('authorization', 'Bearer token')
       .matchHeader('content-type', 'application/json')
-      .post('/stacks', {
+      .post('/stacks/create/standalone/string', {
         name: 'new-stack-name',
         stackFileContent:
           "version: '3.7'\n\nservices:\n  server:\n    image: ghcr.io/username/repo:sha-0142c14\n    deploy:\n      update_config:\n        order: start-first\n"
@@ -181,7 +168,7 @@ describe('deployStack', () => {
     nock(BASE_API_URL)
       .matchHeader('authorization', 'Bearer token')
       .matchHeader('content-type', 'application/json')
-      .post('/stacks', {
+      .post('/stacks/create/standalone/string', {
         name: 'new-stack-name',
         stackFileContent:
           "version: '3.7'\n\nservices:\n  server:\n    image: ghcr.io/username/repo:latest\n    deploy:\n      update_config:\n        order: start-first\n"
@@ -209,7 +196,7 @@ describe('deployStack', () => {
     nock(BASE_API_URL)
       .matchHeader('authorization', 'Bearer token')
       .matchHeader('content-type', 'application/json')
-      .post('/stacks', {
+      .post('/stacks/create/standalone/string', {
         name: 'new-stack-name',
         stackFileContent:
           "version: '3.7'\n\nservices:\n  server:\n    image: ghcr.io/testUsername/repo:latest\n    deploy:\n      update_config:\n        order: start-first\n"

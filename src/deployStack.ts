@@ -52,7 +52,7 @@ function generateNewStackDefinition(
 
   const imageWithoutTag = image.substring(0, image.indexOf(':'))
   core.info(`Inserting image ${image} into the stack definition`)
-  return stackDefinition.replace(new RegExp(`${imageWithoutTag}(:.*)?\n`), `${image}\n`)
+  return stackDefinition.replace(new RegExp(`${imageWithoutTag}(:.*)?\n`, 'g'), `${image}\n`)
 }
 
 export async function deployStack({
