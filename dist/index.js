@@ -26,7 +26,8 @@ class PortainerApi {
         this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${data.jwt}`;
     }
     async logout() {
-        await this.axiosInstance.post('/auth/logout');
+        // https://github.com/portainer/portainer/issues/12457
+        // await this.axiosInstance.post('/auth/logout')
         this.axiosInstance.defaults.headers.common['Authorization'] = '';
     }
     async getStacks() {

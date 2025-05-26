@@ -42,7 +42,8 @@ export class PortainerApi {
   }
 
   async logout(): Promise<void> {
-    await this.axiosInstance.post('/auth/logout')
+    // https://github.com/portainer/portainer/issues/12457
+    // await this.axiosInstance.post('/auth/logout')
     this.axiosInstance.defaults.headers.common['Authorization'] = ''
   }
 
