@@ -1,4 +1,5 @@
 import { PortainerApi } from './api'
+import { EnvVariables } from './api'
 import path from 'path'
 import fs from 'fs'
 import Handlebars from 'handlebars'
@@ -13,6 +14,7 @@ type DeployStack = {
   stackName: string
   stackDefinitionFile?: string
   templateVariables?: object
+  envVariables?: EnvVariables
   image?: string
   pruneStack?: boolean
   pullImage?: boolean
@@ -21,6 +23,38 @@ type DeployStack = {
 enum StackType {
   SWARM = 1,
   COMPOSE = 2
+}
+
+export function parseEnvVariables(envVariables: string): EnvVariables {
+  core.debug(`Parsing env variables: ${envVariables}`)
+  return envVariables
+    .split('\\n')
+    .filter(line => line.trim() !== '')
+    .map(line => {
+      const [name, ...rest] = line.split('=')
+      core.debug(`Parsing env variable: ${name}=${rest.join('=')}`)
+      return {
+        name: name.trim(),
+        value: rest.join('=').trim()
+      }
+    })
+}
+
+export function mergeEnvVariables(original: EnvVariables, updates: EnvVariables): EnvVariables {
+  const mergedMap = new Map<string, string>()
+
+  // Step 1: Add original variables
+  for (const variable of original) {
+    mergedMap.set(variable.name, variable.value)
+  }
+
+  // Step 2: Apply updates (overwrite or add)
+  for (const variable of updates) {
+    mergedMap.set(variable.name, variable.value)
+  }
+
+  // Step 3: Convert map back to array
+  return Array.from(mergedMap.entries()).map(([name, value]) => ({ name, value }))
 }
 
 function generateNewStackDefinition(
@@ -68,6 +102,7 @@ export async function deployStack({
   stackName,
   stackDefinitionFile,
   templateVariables,
+  envVariables,
   image,
   pruneStack,
   pullImage
@@ -96,6 +131,18 @@ export async function deployStack({
     if (existingStack) {
       core.info(`Found existing stack with name: ${stackName}`)
       core.info('Updating existing stack...')
+
+      if (envVariables) {
+        if (!existingStack.Env) {
+          existingStack.Env = []
+        }
+        core.info(`Updating environment variables for stack: ${stackName}`)
+        core.debug(`Old environment variables: ${JSON.stringify(existingStack.Env)}`)
+        existingStack.Env = mergeEnvVariables(existingStack.Env, envVariables)
+        core.debug(`Updated environment variables: ${JSON.stringify(existingStack.Env)}`)
+      } else {
+        core.info('No environment variables provided, keeping existing ones.')
+      }
       await portainerApi.updateStack(
         existingStack.Id,
         {
@@ -125,7 +172,8 @@ export async function deployStack({
         {
           name: stackName,
           stackFileContent: stackDefinitionToDeploy,
-          swarmID: swarmId ? swarmId : undefined
+          swarmID: swarmId ? swarmId : undefined,
+          Env: envVariables ? envVariables : undefined
         }
       )
       core.info(`Successfully created new stack with name: ${stackName}`)

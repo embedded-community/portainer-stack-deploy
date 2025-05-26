@@ -30,6 +30,9 @@ inputs:
   template-variables:
     required: false
     description: "If given, these variables will be replaced in docker-compose file by handlebars"
+  env-variables:
+    required: false
+    description: "Environment variables to set in the stack, eg. VARIABLE1=value1\nVARIABLE2=value2"
   image:
     required: false
     description: "The URI of the container image to insert into the stack definition, eg. docker.pkg.github.com/username/repo/master"
