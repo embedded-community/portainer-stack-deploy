@@ -79,7 +79,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.deployStack = void 0;
+exports.deployStack = exports.mergeEnvVariables = exports.parseEnvVariables = void 0;
 const api_1 = __nccwpck_require__(8947);
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const fs_1 = __importDefault(__nccwpck_require__(7147));
@@ -90,6 +90,35 @@ var StackType;
     StackType[StackType["SWARM"] = 1] = "SWARM";
     StackType[StackType["COMPOSE"] = 2] = "COMPOSE";
 })(StackType || (StackType = {}));
+function parseEnvVariables(envVariables) {
+    core.debug(`Parsing env variables: ${envVariables}`);
+    return envVariables
+        .split('\\n')
+        .filter(line => line.trim() !== '')
+        .map(line => {
+        const [name, ...rest] = line.split('=');
+        core.debug(`Parsing env variable: ${name}=${rest.join('=')}`);
+        return {
+            name: name.trim(),
+            value: rest.join('=').trim()
+        };
+    });
+}
+exports.parseEnvVariables = parseEnvVariables;
+function mergeEnvVariables(original, updates) {
+    const mergedMap = new Map();
+    // Step 1: Add original variables
+    for (const variable of original) {
+        mergedMap.set(variable.name, variable.value);
+    }
+    // Step 2: Apply updates (overwrite or add)
+    for (const variable of updates) {
+        mergedMap.set(variable.name, variable.value);
+    }
+    // Step 3: Convert map back to array
+    return Array.from(mergedMap.entries()).map(([name, value]) => ({ name, value }));
+}
+exports.mergeEnvVariables = mergeEnvVariables;
 function generateNewStackDefinition(stackDefinitionFile, templateVariables, image) {
     if (!stackDefinitionFile) {
         core.info(`No stack definition file provided. Will not update stack definition.`);
@@ -117,7 +146,7 @@ function generateNewStackDefinition(stackDefinitionFile, templateVariables, imag
     core.debug(`Updated stack definition:\n${output}`);
     return output;
 }
-async function deployStack({ portainerHost, username, password, swarmId, endpointId, stackName, stackDefinitionFile, templateVariables, image, pruneStack, pullImage }) {
+async function deployStack({ portainerHost, username, password, swarmId, endpointId, stackName, stackDefinitionFile, templateVariables, envVariables, image, pruneStack, pullImage }) {
     const portainerApi = new api_1.PortainerApi(portainerHost);
     const stackDefinitionToDeploy = generateNewStackDefinition(stackDefinitionFile, templateVariables, image);
     if (stackDefinitionToDeploy)
@@ -135,6 +164,18 @@ async function deployStack({ portainerHost, username, password, swarmId, endpoin
         if (existingStack) {
             core.info(`Found existing stack with name: ${stackName}`);
             core.info('Updating existing stack...');
+            if (envVariables) {
+                if (!existingStack.Env) {
+                    existingStack.Env = [];
+                }
+                core.info(`Updating environment variables for stack: ${stackName}`);
+                core.debug(`Old environment variables: ${JSON.stringify(existingStack.Env)}`);
+                existingStack.Env = mergeEnvVariables(existingStack.Env, envVariables);
+                core.debug(`Updated environment variables: ${JSON.stringify(existingStack.Env)}`);
+            }
+            else {
+                core.info('No environment variables provided, keeping existing ones.');
+            }
             await portainerApi.updateStack(existingStack.Id, {
                 endpointId: existingStack.EndpointId
             }, {
@@ -157,7 +198,8 @@ async function deployStack({ portainerHost, username, password, swarmId, endpoin
             }, {
                 name: stackName,
                 stackFileContent: stackDefinitionToDeploy,
-                swarmID: swarmId ? swarmId : undefined
+                swarmID: swarmId ? swarmId : undefined,
+                Env: envVariables ? envVariables : undefined
             });
             core.info(`Successfully created new stack with name: ${stackName}`);
         }
@@ -238,6 +280,9 @@ async function run() {
         const templateVariables = core.getInput('template-variables', {
             required: false
         });
+        const envVariables = core.getInput('env-variables', {
+            required: false
+        });
         const image = core.getInput('image', {
             required: false
         });
@@ -256,6 +301,7 @@ async function run() {
             stackName,
             stackDefinitionFile: stackDefinitionFile !== null && stackDefinitionFile !== void 0 ? stackDefinitionFile : undefined,
             templateVariables: templateVariables ? JSON.parse(templateVariables) : undefined,
+            envVariables: envVariables ? (0, deployStack_1.parseEnvVariables)(envVariables) : undefined,
             image,
             pruneStack: pruneStack || false,
             pullImage: pullImage || false
