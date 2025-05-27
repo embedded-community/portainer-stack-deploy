@@ -3,7 +3,6 @@ import { deployStack } from '../src/deployStack'
 
 jest.mock('@actions/core')
 
-
 process.env.GITHUB_WORKSPACE = './'
 
 const BASE_API_URL = 'http://mock.url/api'
@@ -49,18 +48,17 @@ describe('deployStack', () => {
       })
       .reply(200)
 
-      await deployStack({
-        portainerHost: 'http://mock.url',
-        username: 'username',
-        password: 'password',
-        swarmId: 's4ny2nh7qt8lluhvddeu9ulwl',
-        endpointId: 1,
-        stackName: 'new-stack-name',
-        stackDefinitionFile: 'example-stack-definition.yml',
-        image: 'ghcr.io/username/repo:sha-0142c14'
-      })
-      nock.isDone()
-
+    await deployStack({
+      portainerHost: 'http://mock.url',
+      username: 'username',
+      password: 'password',
+      swarmId: 's4ny2nh7qt8lluhvddeu9ulwl',
+      endpointId: 1,
+      stackName: 'new-stack-name',
+      stackDefinitionFile: 'example-stack-definition.yml',
+      image: 'ghcr.io/username/repo:sha-0142c14'
+    })
+    nock.isDone()
   })
 
   test('deploy compose stack', async () => {
@@ -75,7 +73,7 @@ describe('deployStack', () => {
       .query({
         type: 2,
         method: 'string',
-        endpointId: 1,
+        endpointId: 1
       })
       .reply(200)
 
@@ -125,7 +123,10 @@ describe('deployStack', () => {
       .matchHeader('authorization', 'Bearer token')
       .matchHeader('content-type', 'application/json')
       .put('/stacks/3', {
-        env: [{ name: 'keyName', value: 'value1' }, {name: '123', value: '123'}],
+        env: [
+          { name: 'keyName', value: 'value1' },
+          { name: '123', value: '123' }
+        ],
         prune: false,
         pullImage: false,
         stackFileContent:
@@ -143,7 +144,7 @@ describe('deployStack', () => {
       endpointId: 1,
       stackName: 'stack-name-with-env',
       stackDefinitionFile: 'example-stack-definition.yml',
-      envVariables: [{name: '123', value: '123'}],
+      envVariables: [{ name: '123', value: '123' }],
       image: 'ghcr.io/username/repo:sha-0142c14'
     })
 

@@ -142,9 +142,7 @@ function generateNewStackDefinition(stackDefinitionFile, templateVariables, imag
     }
     const imageWithoutTag = image.substring(0, image.indexOf(':'));
     core.info(`Inserting image ${image} into the stack definition`);
-    const imageWithoutTagEscaped = imageWithoutTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
-    const regex = new RegExp(`^(\\s*image:\\s*['"]?)${imageWithoutTagEscaped}(:[^'"]*)?(['"]?)`, 'gm');
-    const output = stackDefinition.replace(regex, `$1${image}$3`);
+    const output = stackDefinition.replace(new RegExp(`${imageWithoutTag}(:.*)?\n`, 'g'), `${image}\n`);
     core.debug(`Updated stack definition:\n${output}`);
     return output;
 }
