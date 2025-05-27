@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import axios from 'axios'
-import { deployStack } from './deployStack'
+import { deployStack, parseEnvVariables } from './deployStack'
 
 export async function run(): Promise<void> {
   try {
@@ -28,6 +28,9 @@ export async function run(): Promise<void> {
     const templateVariables: string = core.getInput('template-variables', {
       required: false
     })
+    const envVariables: string = core.getInput('env-variables', {
+      required: false
+    })
     const image: string = core.getInput('image', {
       required: false
     })
@@ -47,6 +50,7 @@ export async function run(): Promise<void> {
       stackName,
       stackDefinitionFile: stackDefinitionFile ?? undefined,
       templateVariables: templateVariables ? JSON.parse(templateVariables) : undefined,
+      envVariables: envVariables ? parseEnvVariables(envVariables) : undefined,
       image,
       pruneStack: pruneStack || false,
       pullImage: pullImage || false
