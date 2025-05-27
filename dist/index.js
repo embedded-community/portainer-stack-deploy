@@ -164,6 +164,7 @@ async function deployStack({ portainerHost, username, password, swarmId, endpoin
         if (existingStack) {
             core.info(`Found existing stack with name: ${stackName}`);
             core.info('Updating existing stack...');
+            console.info(`old env: ${JSON.stringify(existingStack.Env)}`);
             if (envVariables) {
                 if (!existingStack.Env) {
                     existingStack.Env = [];
