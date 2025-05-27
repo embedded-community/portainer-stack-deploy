@@ -3,6 +3,7 @@ import { deployStack } from '../src/deployStack'
 
 jest.mock('@actions/core')
 
+
 process.env.GITHUB_WORKSPACE = './'
 
 const BASE_API_URL = 'http://mock.url/api'
@@ -47,6 +48,19 @@ describe('deployStack', () => {
         endpointId: 1
       })
       .reply(200)
+
+      await deployStack({
+        portainerHost: 'http://mock.url',
+        username: 'username',
+        password: 'password',
+        swarmId: 's4ny2nh7qt8lluhvddeu9ulwl',
+        endpointId: 1,
+        stackName: 'new-stack-name',
+        stackDefinitionFile: 'example-stack-definition.yml',
+        image: 'ghcr.io/username/repo:sha-0142c14'
+      })
+      nock.isDone()
+
   })
 
   test('deploy compose stack', async () => {
@@ -61,7 +75,7 @@ describe('deployStack', () => {
       .query({
         type: 2,
         method: 'string',
-        endpointId: 1
+        endpointId: 1,
       })
       .reply(200)
 
@@ -111,7 +125,7 @@ describe('deployStack', () => {
       .matchHeader('authorization', 'Bearer token')
       .matchHeader('content-type', 'application/json')
       .put('/stacks/3', {
-        env: [{ name: 'keyName', value: 'value1' }],
+        env: [{ name: 'keyName', value: 'value1' }, {name: '123', value: '123'}],
         prune: false,
         pullImage: false,
         stackFileContent:
@@ -129,6 +143,7 @@ describe('deployStack', () => {
       endpointId: 1,
       stackName: 'stack-name-with-env',
       stackDefinitionFile: 'example-stack-definition.yml',
+      envVariables: [{name: '123', value: '123'}],
       image: 'ghcr.io/username/repo:sha-0142c14'
     })
 
@@ -216,6 +231,35 @@ describe('deployStack', () => {
       stackName: 'new-stack-name',
       stackDefinitionFile: 'example-stack-definition-with-template-variables.yml',
       templateVariables: { username: 'testUsername' }
+    })
+
+    nock.isDone()
+  })
+
+  test('All image tags are replaced', async () => {
+    nock(BASE_API_URL)
+      .matchHeader('authorization', 'Bearer token')
+      .matchHeader('content-type', 'application/json')
+      .post('/stacks/create/standalone/string', {
+        name: 'new-stack-name',
+        stackFileContent:
+          "version: '3.7'\n\nservices:\n  server1:\n    image: ghcr.io/username/repo:1.2.3\n    deploy:\n      update_config:\n        order: start-first\n  server2:\n    image: ghcr.io/username/repo:1.2.3\n    deploy:\n      update_config:\n        order: start-first\n"
+      })
+      .query({
+        type: 2,
+        method: 'string',
+        endpointId: 1
+      })
+      .reply(200)
+
+    await deployStack({
+      portainerHost: 'http://mock.url',
+      username: 'username',
+      password: 'password',
+      endpointId: 1,
+      stackName: 'new-stack-name',
+      stackDefinitionFile: 'example-stack-definition-multi-image.yml',
+      image: 'ghcr.io/username/repo:1.2.3'
     })
 
     nock.isDone()
