@@ -91,16 +91,17 @@ var StackType;
     StackType[StackType["COMPOSE"] = 2] = "COMPOSE";
 })(StackType || (StackType = {}));
 function parseEnvVariables(envVariables) {
-    core.debug(`Parsing env variables: ${envVariables}`);
+    core.debug(`Parsing env variables: ${envVariables.replace(/\n/g, '\n')}`);
     return envVariables
-        .split('\\n')
+        .split('\n')
         .filter(line => line.trim() !== '')
         .map(line => {
         const [name, ...rest] = line.split('=');
-        core.debug(`Parsing env variable: ${name}=${rest.join('=')}`);
+        const value = rest.join('=').trim();
+        core.debug(`Parsing env variable: ${name}=${value.replace(/\n/g, '\n')}`);
         return {
             name: name.trim(),
-            value: rest.join('=').trim()
+            value: value
         };
     });
 }
@@ -164,15 +165,14 @@ async function deployStack({ portainerHost, username, password, swarmId, endpoin
         if (existingStack) {
             core.info(`Found existing stack with name: ${stackName}`);
             core.info('Updating existing stack...');
-            console.info(`old env: ${JSON.stringify(existingStack.Env)}`);
             if (envVariables) {
                 if (!existingStack.Env) {
                     existingStack.Env = [];
                 }
-                core.info(`Updating environment variables for stack: ${stackName}`);
+                core.debug(`Updating environment variables for stack: ${stackName}`);
                 core.debug(`Old environment variables: ${JSON.stringify(existingStack.Env)}`);
                 existingStack.Env = mergeEnvVariables(existingStack.Env, envVariables);
-                core.debug(`Updated environment variables: ${JSON.stringify(existingStack.Env)}`);
+                core.info(`Updated environment variables: ${JSON.stringify(existingStack.Env)}`);
             }
             else {
                 core.info('No environment variables provided, keeping existing ones.');
