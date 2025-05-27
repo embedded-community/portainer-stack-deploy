@@ -91,8 +91,9 @@ var StackType;
     StackType[StackType["COMPOSE"] = 2] = "COMPOSE";
 })(StackType || (StackType = {}));
 function parseEnvVariables(envVariables) {
-    core.debug(`Parsing env variables: ${envVariables.replace(/\n/g, '\n')}`);
-    return envVariables
+    const normalizedEnvVariables = envVariables.replace(/\\n/g, '\n').trim();
+    core.debug(`Parsing env variables: ${normalizedEnvVariables.replace(/\n/g, '\n')}`);
+    return normalizedEnvVariables
         .split('\n')
         .filter(line => line.trim() !== '')
         .map(line => {

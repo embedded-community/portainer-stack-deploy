@@ -26,8 +26,9 @@ enum StackType {
 }
 
 export function parseEnvVariables(envVariables: string): EnvVariables {
-  core.debug(`Parsing env variables: ${envVariables.replace(/\n/g, '\n')}`)
-  return envVariables
+  const normalizedEnvVariables = envVariables.replace(/\\n/g, '\n').trim()
+  core.debug(`Parsing env variables: ${normalizedEnvVariables.replace(/\n/g, '\n')}`)
+  return normalizedEnvVariables
     .split('\n')
     .filter(line => line.trim() !== '')
     .map(line => {
