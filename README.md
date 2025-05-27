@@ -8,7 +8,7 @@ Portainer-stack-deploy is a GitHub Action for deploying a newly updated stack to
 
 **Currently works on Portainer API v2.**
 
-**This repo is a fork of [carlrygart/portainer-stack-deploy](https://github.com/carlrygart/portainer-stack-deploy) with some minor changes.**
+**This repo is a fork of [OidaGroup/portainer-stack-deploy](https://github.com/carlrygart/portainer-stack-deploy) with some minor changes.**
 
 ## Action Inputs
 
