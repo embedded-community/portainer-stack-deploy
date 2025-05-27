@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   server1:
-    image: ghcr.io/username/repo:latest
+    image: 'ghcr.io/username/repo:latest'
     deploy:
       update_config:
         order: start-first

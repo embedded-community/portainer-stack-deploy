@@ -244,7 +244,7 @@ describe('deployStack', () => {
       .post('/stacks/create/standalone/string', {
         name: 'new-stack-name',
         stackFileContent:
-          "version: '3.7'\n\nservices:\n  server1:\n    image: ghcr.io/username/repo:1.2.3\n    deploy:\n      update_config:\n        order: start-first\n  server2:\n    image: ghcr.io/username/repo:1.2.3\n    deploy:\n      update_config:\n        order: start-first\n"
+          "version: '3.7'\n\nservices:\n  server1:\n    image: 'ghcr.io/username/repo:1.2.3'\n    deploy:\n      update_config:\n        order: start-first\n  server2:\n    image: ghcr.io/username/repo:1.2.3\n    deploy:\n      update_config:\n        order: start-first\n"
       })
       .query({
         type: 2,
